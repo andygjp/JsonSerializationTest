@@ -1,24 +1,29 @@
 ﻿namespace JsonSerializationTest
 {
     using System;
-    using static System.Threading.Interlocked;
     using static Volatile;
 
     internal static class LazyInitializer
     {
-        public static T EnsureInitialized<T>(ref T target, Func<T> valueFactory) where T : class
+        public static T EnsureInitialized<T>(ref T target, ref bool initialized, ref object syncLock, Func<T> valueFactory) where T : class
         {
-            if (Read(ref target) != null)
+            if (Read(ref initialized))
             {
                 return target;
             }
-            return EnsureInitializedCore(ref target, valueFactory);
+            return EnsureInitializedCore(ref target, ref initialized, ref syncLock, valueFactory);
         }
 
-        static T EnsureInitializedCore<T>(ref T target, Func<T> valueFactory) where T : class
+        static T EnsureInitializedCore<T>(ref T target, ref bool initialized, ref object syncLock, Func<T> valueFactory) where T : class
         {
-            T obj = valueFactory();
-            CompareExchange(ref target, obj, default(T));
+            lock (syncLock)
+            {
+                if (!Read(ref initialized))
+                {
+                    target = valueFactory();
+                    Write(ref initialized, true);
+                }
+            }
             return target;
         }
     }

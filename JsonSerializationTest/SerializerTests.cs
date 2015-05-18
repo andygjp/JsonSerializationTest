@@ -31,7 +31,7 @@
 
         void RunTestSuite<T>(T obj, List<IJsonSerializerDeserializer> serializers, Action<string> output)
         {
-            if (!(serializers?.Any()).GetValueOrDefault())
+            if (!(serializers?.Any() ?? false))
             {
                 output($"No serializers to test. Either set the {nameof(Serializers)} member with the serializers you want to use or use the defaults.");
                 return;
@@ -61,7 +61,7 @@
             }
         }
 
-        static string SerializeCore<T>(T obj, IJsonSerializerDeserializer serializer, Action<string> output)
+        static string SerializeCore(object obj, IJsonSerializerDeserializer serializer, Action<string> output)
         {
             var json = serializer.ToJson(obj);
             output($"The {serializer.GetType()} successfully serialized the object:");
@@ -75,7 +75,7 @@
             {
                 DeserializeCore<T>(serializer, json, output);
             }
-            catch(InvalidCastException)
+            catch (InvalidCastException)
             {
                 Deserialize<IDictionary<string, object>>(serializer, json, output);
             }

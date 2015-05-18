@@ -4,11 +4,17 @@ namespace JsonSerializationTest
 
     internal static class Volatile
     {
-        public static T Read<T>(ref T location) where T : class
+        public static bool Read(ref bool location)
         {
-            T obj = location;
+            int num = location ? 1 : 0;
             MemoryBarrier();
-            return obj;
+            return num != 0;
+        }
+
+        public static void Write(ref bool location, bool value)
+        {
+            MemoryBarrier();
+            location = value;
         }
     }
 }
